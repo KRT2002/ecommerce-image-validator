@@ -11,6 +11,8 @@ from ecommerce_image_validator.extractors.background_analyzer import BackgroundA
 from ecommerce_image_validator.extractors.blur_detector import BlurDetector
 from ecommerce_image_validator.extractors.object_detector import ObjectDetector
 from ecommerce_image_validator.llm.groq_reasoner import GroqReasoner
+from ecommerce_image_validator.llm.claude_reasoner import ClaudeReasoner
+from ecommerce_image_validator.llm.gemini_reasoner import GeminiReasoner
 from ecommerce_image_validator.logger import setup_logger
 from ecommerce_image_validator.utils import calculate_image_stats, load_image, preprocess_image
 
@@ -124,9 +126,22 @@ class ImageValidationPipeline:
     - Add request queuing and rate limiting
     """
     
-    def __init__(self):
-        """Initialize the validation pipeline with all components."""
-        logger.info("Initializing Image Validation Pipeline...")
+    def __init__(self, llm_type: str = "groq"):
+        """
+        Initialize the validation pipeline with all components.
+        
+        Parameters
+        ----------
+        llm_type : str, optional
+            Which LLM to use for reasoning: 'groq', 'claude', or 'gemini'
+            (default: 'groq')
+        
+        Raises
+        ------
+        ValueError
+            If llm_type is not recognized
+        """
+        logger.info(f"Initializing Image Validation Pipeline with {llm_type.upper()} LLM...")
         
         try:
             # Initialize extractors
@@ -134,10 +149,22 @@ class ImageValidationPipeline:
             self.object_detector = ObjectDetector()
             self.background_analyzer = BackgroundAnalyzer()
             
-            # Initialize LLM reasoner
-            self.llm_reasoner = GroqReasoner()
+            # Initialize LLM reasoner based on type
+            llm_type = llm_type.lower()
             
-            logger.info("Pipeline initialization complete")
+            if llm_type == "groq":
+                self.llm_reasoner = GroqReasoner()
+            elif llm_type == "claude":
+                self.llm_reasoner = ClaudeReasoner()
+            elif llm_type == "gemini":
+                self.llm_reasoner = GeminiReasoner()
+            else:
+                raise ValueError(
+                    f"Unknown LLM type: '{llm_type}'. "
+                    f"Valid options: 'groq', 'claude', 'gemini'"
+                )
+            
+            logger.info(f"Pipeline initialization complete with {llm_type.upper()} reasoner")
         
         except Exception as e:
             logger.error(f"Pipeline initialization failed: {str(e)}")

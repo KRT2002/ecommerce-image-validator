@@ -26,10 +26,34 @@ class Settings(BaseSettings):
         Logging level (DEBUG, INFO, WARNING, ERROR)
     """
     
-    # LLM Configuration
+    # Groq LLM Configuration
     groq_api_key: str = Field(..., description="Groq API key")
     model_name: str = Field(default="llama-3.3-70b-versatile", description="Groq model name")
     temperature: float = Field(default=0.1, ge=0.0, le=2.0, description="LLM temperature")
+    
+    # AWS Bedrock / Claude Configuration
+    aws_access_key_id: str | None = Field(default=None, description="AWS access key ID")
+    aws_secret_access_key: str | None = Field(default=None, description="AWS secret access key")
+    aws_session_token: str | None = Field(default=None, description="AWS session token (optional)")
+    aws_region: str = Field(default="us-east-1", description="AWS region")
+    claude_model_id: str = Field(
+        default="anthropic.claude-3-5-sonnet-20241022-v2:0",
+        description="Claude model ARN ID for Bedrock"
+    )
+    
+    # Google Gemini Configuration
+    google_api_key: str | None = Field(default=None, description="Google API key")
+    gemini_model_id: str = Field(
+        default="gemini-2.0-flash-exp",
+        description="Gemini model ID"
+    )
+    
+    # Model Selection
+    available_models: str = Field(
+        default="groq,claude,gemini",
+        description="Comma-separated list of available models"
+    )
+    default_model: str = Field(default="groq", description="Default model to use")
     
     # Feature Extraction Thresholds
     blur_threshold: float = Field(
