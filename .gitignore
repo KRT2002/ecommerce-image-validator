@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.python-version
+
+# UV
+.uv/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Outputs
+examples/outputs/*.json
+examples/outputs/*.jpg
+examples/outputs/*.png
+!examples/outputs/.gitkeep
+
+# Models (cached locally)
+models/
+weights/
+*.pt
+*.pth
+
+# Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+logs/
+
+# Streamlit
+.streamlit/secrets.toml
