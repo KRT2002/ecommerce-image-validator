@@ -37,9 +37,21 @@ st.markdown("""
 
 
 @st.cache_resource
-def load_pipeline():
-    """Load and cache the validation pipeline."""
-    return ImageValidationPipeline()
+def load_pipeline(llm_type: str = "groq"):
+    """
+    Load and cache the validation pipeline.
+    
+    Parameters
+    ----------
+    llm_type : str
+        Which LLM to use: 'groq', 'claude', or 'gemini'
+    
+    Returns
+    -------
+    ImageValidationPipeline
+        Initialized pipeline
+    """
+    return ImageValidationPipeline(llm_type=llm_type)
 
 
 def pil_to_cv2(pil_image: Image.Image) -> np.ndarray:
@@ -153,20 +165,44 @@ def main():
         - 🎨 Background Quality Analysis
         
         **AI Reasoning:**
-        - 🤖 Llama 3.3 70B (via Groq)
+        - 🤖 Multiple LLM options
         - Structured quality assessment
         - Explainable decisions
         """)
         
         st.divider()
         
-        st.header("⚙️ How it works")
+        st.header("⚙️ Model Selection")
+        selected_model = st.selectbox(
+            "Choose LLM Model",
+            ["groq", "claude", "gemini"],
+            index=0,
+            help="Select which AI model to use for reasoning"
+        )
+        
+        model_info = {
+            "groq": "🦙 Llama 3.3 70B (via Groq)\nFast, free, good reasoning",
+            "claude": "🧠 Claude 3.5 Sonnet (via AWS)\nExcellent reasoning, costs money",
+            "gemini": "✨ Gemini 2.5 Flash\nFree tier available"
+        }
+        
+        st.caption(model_info[selected_model])
+        
+        st.divider()
+        
+        st.header("🔄 How it works")
         st.markdown("""
         1. Upload an image
-        2. System extracts visual features
-        3. AI analyzes features
-        4. Receive quality verdict + explanation
+        2. Preprocess the image
+        3. System extracts visual features
+        4. AI analyzes features
+        5. Receive quality verdict + explanation
         """)
+        
+        compare_all = st.checkbox(
+            "🔄 Compare All Models",
+            help="Run validation with all 3 LLMs and compare results"
+        )
     
     # File uploader
     uploaded_file = st.file_uploader(
@@ -190,28 +226,77 @@ def main():
             # Convert PIL to CV2
             cv2_image = pil_to_cv2(pil_image)
             
-            # Run validation
-            with st.spinner("🔄 Analyzing image..."):
-                try:
-                    pipeline = load_pipeline()
-                    result = pipeline.validate_from_array(
-                        cv2_image,
-                        image_name=uploaded_file.name
-                    )
-                    
-                    # Display verdict
-                    display_verdict(result.verdict, result.confidence)
-                    
-                    # Display quality score
-                    st.metric("Quality Score", f"{result.quality_score:.2f}/1.00")
-                    
-                    # Display processing time
-                    processing_time = result.metadata.get("processing_time_seconds", 0)
-                    st.caption(f"⏱️ Processed in {processing_time:.2f} seconds")
+            # Check if comparing all models
+            if compare_all:
+                st.info("🔄 Running comparison with all models...")
                 
-                except Exception as e:
-                    st.error(f"❌ Validation failed: {str(e)}")
+                models = ["groq", "claude", "gemini"]
+                results_dict = {}
+                
+                for model_name in models:
+                    with st.spinner(f"Running {model_name.upper()}..."):
+                        try:
+                            pipeline = load_pipeline(llm_type=model_name)
+                            result = pipeline.validate_from_array(
+                                cv2_image,
+                                image_name=uploaded_file.name
+                            )
+                            results_dict[model_name] = result
+                        except Exception as e:
+                            st.error(f"❌ {model_name.upper()} failed: {str(e)}")
+                            results_dict[model_name] = None
+                
+                # Display comparison table
+                st.subheader("🔄 Model Comparison")
+                
+                comparison_data = []
+                for model_name, result in results_dict.items():
+                    if result:
+                        comparison_data.append({
+                            "Model": model_name.upper(),
+                            "Verdict": result.verdict,
+                            "Score": f"{result.quality_score:.2f}",
+                            "Confidence": f"{result.confidence:.2f}",
+                            "Time": f"{result.metadata.get('processing_time_seconds', 0):.2f}s"
+                        })
+                
+                st.dataframe(comparison_data, use_container_width=True)
+                
+                # Check agreement
+                verdicts = [r.verdict for r in results_dict.values() if r]
+                if len(set(verdicts)) == 1:
+                    st.success("✅ All models agree!")
+                else:
+                    st.warning("⚠️ Models disagree - manual review recommended")
+                
+                # Use first successful result for detailed display
+                result = next((r for r in results_dict.values() if r), None)
+                if not result:
+                    st.error("All models failed")
                     st.stop()
+            
+            else:
+                # Single model validation
+                with st.spinner(f"🔄 Analyzing with {selected_model.upper()}..."):
+                    try:
+                        pipeline = load_pipeline(llm_type=selected_model)
+                        result = pipeline.validate_from_array(
+                            cv2_image,
+                            image_name=uploaded_file.name
+                        )
+                    except Exception as e:
+                        st.error(f"❌ Validation failed: {str(e)}")
+                        st.stop()
+            
+            # Display verdict
+            display_verdict(result.verdict, result.confidence)
+            
+            # Display quality score
+            st.metric("Quality Score", f"{result.quality_score:.2f}/1.00")
+            
+            # Display processing time
+            processing_time = result.metadata.get("processing_time_seconds", 0)
+            st.caption(f"⏱️ Processed in {processing_time:.2f} seconds")
         
         # Full width sections below
         st.divider()
@@ -245,7 +330,6 @@ def main():
         # Prepare JSON
         safe_dict = make_json_safe(result.model_dump())
         result_json = json.dumps(safe_dict, indent=2)
-        # result_json = result.model_dump_json(indent=2)
         
         col1, col2 = st.columns(2)
         
