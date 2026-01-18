@@ -31,7 +31,7 @@ An intelligent system for assessing the quality of product images for e-commerce
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.10+
 - UV package manager ([install](https://docs.astral.sh/uv/))
 - At least one of the following API keys:
   - Groq API key (free tier at [groq.com](https://groq.com))
@@ -312,8 +312,8 @@ See [technical_writeup.md](technical_writeup.md) for:
 | Model | Provider | Speed | Cost | Reasoning Quality | Best For |
 |-------|----------|-------|------|-------------------|----------|
 | **Llama 3.3 70B** | Groq | ⚡⚡⚡ Fast (2-3s) | Free | ⭐⭐⭐⭐ Excellent | Development, fast iteration |
-| **Claude 3.5 Sonnet** | AWS Bedrock | ⚡⚡ Medium (3-5s) | $$$ Paid | ⭐⭐⭐⭐⭐ Best | Production, critical decisions |
-| **Gemini 2.5 Flash** | Google | ⚡ Slower (15–17s) | Free tier | ⭐⭐⭐⭐ Very Good | Large-context tasks, structured reasoning |
+| **Claude 3.5 Sonnet** | AWS Bedrock | ⚡⚡ Medium (5-7s) | $$$ Paid | ⭐⭐⭐⭐⭐ Best | Production, critical decisions |
+| **Gemini 2.5 Flash** | Google | ⚡⚡ Medium (5-7s) | Free tier | ⭐⭐⭐⭐ Very Good | Large-context tasks, structured reasoning |
 
 **Recommendation:** 
 - **Development:** Use Groq (free, fast, good quality)

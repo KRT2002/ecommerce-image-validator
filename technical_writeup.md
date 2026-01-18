@@ -16,7 +16,7 @@ Input Image → Feature Extraction → LLM Reasoning → Structured Output
 - **Background Analysis (Custom Heuristic):** Combines edge density and color variance to assess cleanliness
 
 **Stage 2: LLM Reasoning**
-- **Multiple Models:** Llama 3.3 70B (Groq), Claude 3.5 Sonnet (AWS Bedrock), Gemini 2.0 Flash (Google)
+- **Multiple Models:** Llama 3.3 70B (Groq), Claude 3.5 Sonnet (AWS Bedrock), Gemini 2.5 Flash (Google)
 - **Structured Output:** JSON format with verdict, quality score, reasoning, issues, and feature importance weights
 
 ---
